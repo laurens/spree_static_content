@@ -2,7 +2,7 @@ class Spree::Page < ActiveRecord::Base
   default_scope :order => "position ASC"
 
   validates_presence_of :title
-  validates_presence_of [:slug, :body], :if => :not_using_foreign_link?
+  validates_presence_of [:slug, :body], :unless => :using_foreign_link?
   validates_presence_of :layout, :if => :render_layout_as_partial?
 
   scope :visible, where(:visible => true)
@@ -25,11 +25,20 @@ class Spree::Page < ActiveRecord::Base
     foreign_link.blank? ? slug : foreign_link
   end
 
+  def self.find_by_slug(slug)
+    slug = Spree::StaticPage.ensure_slug_prefix(slug)
+    super(slug)
+  end
+
+  def self.find_by_slug!(slug)
+    slug = Spree::StaticPage.ensure_slug_prefix(slug)
+    super(slug)
+  end
+
 private
 
   def update_positions_and_slug
-    # ensure that all slugs start with a slash
-    slug.prepend('/') if not_using_foreign_link? and not slug.start_with? '/'
+    self.slug = Spree::StaticPage.ensure_slug_prefix(self.slug) unless using_foreign_link?
 
     unless new_record?
       return unless prev_position = Spree::Page.find(self.id).position
@@ -43,7 +52,7 @@ private
     true
   end
 
-  def not_using_foreign_link?
-    foreign_link.blank?
+  def using_foreign_link?
+    foreign_link.present?
   end
 end

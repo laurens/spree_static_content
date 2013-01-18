@@ -5,7 +5,7 @@ class Spree::StaticContentController < Spree::BaseController
   layout :determine_layout
 
   def show
-    @page = Spree::Page.visible.find_by_slug!(request.path)
+    @page = Spree::Page.visible.find_by_slug!(params[:slug])
   end
 
   private

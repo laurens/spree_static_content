@@ -1,7 +1,11 @@
 class Spree::StaticPage
+  def self.ensure_slug_prefix(slug)
+    slug.start_with?('/') ? slug : "/#{slug}"
+  end
+
   def self.matches?(request)
-    return false if request.path =~ /(^\/+(admin|account|cart|checkout|content|login|pg\/|orders|products|s\/|session|signup|shipments|states|t\/|tax_categories|user)+)/
-    !Spree::Page.visible.find_by_slug(request.path).nil?
+    slug = request.symbolized_path_parameters[:slug]
+    Spree::Page.visible.exists?(:slug => ensure_slug_prefix(slug))
   end
 end
 
@@ -11,6 +15,6 @@ Spree::Core::Engine.routes.append do
   end
 
   constraints(Spree::StaticPage) do
-    match '/(*path)', :to => 'static_content#show', :via => :get, :as => 'static'
+    match '/(*slug)', :to => 'static_content#show', :via => :get, :as => 'static', :defaults => {:slug => '/' }
   end
 end
