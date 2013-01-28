@@ -41,7 +41,7 @@ private
     self.slug = Spree::StaticPage.ensure_slug_prefix(self.slug) unless using_foreign_link?
 
     unless new_record?
-      return unless prev_position = Spree::Page.find(self.id).position
+      return unless prev_position = self.position_was
       if prev_position > self.position
         Spree::Page.update_all("position = position + 1", ["? <= position AND position < ?", self.position, prev_position])
       elsif prev_position < self.position
