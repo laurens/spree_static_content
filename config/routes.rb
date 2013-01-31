@@ -5,7 +5,12 @@ class Spree::StaticPage
 
   def self.matches?(request)
     slug = request.symbolized_path_parameters[:slug]
-    Spree::Page.visible.exists?(:slug => ensure_slug_prefix(slug))
+    
+    # required or ActsAsTenant will confuse this by injecting the wrong tenant in some circumstances
+    # TODO move this somewhere else
+    ActsAsTenant.with_tenant(nil) do
+      Spree::Page.visible.exists?(:slug => ensure_slug_prefix(slug))
+    end
   end
 end
 
